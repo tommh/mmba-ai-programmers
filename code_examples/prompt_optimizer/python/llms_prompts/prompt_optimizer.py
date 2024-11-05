@@ -5,7 +5,8 @@ from typing import Callable, List
 
 class SimplePromptOptimizer:
     def __init__(self, model_name: str = "gpt-3.5-turbo"):
-        self.llm = ChatOpenAI(model_name=model_name, temperature=0)
+        self.llm = ChatOpenAI(model_name=model_name, temperature=0, tags=["prompt-tester"])
+        self.optimizer_llm = ChatOpenAI(model_name=model_name, temperature=0, tags=["prompt-optimizer"])
         self.langsmith = Client()
 
     def optimize(self, dataset_name: str, prompt_name: str, evaluate_func: Callable, max_iterations: int = 3) -> tuple:
@@ -69,7 +70,7 @@ class SimplePromptOptimizer:
         ])
         
         # Get improvement suggestion
-        response = self.llm.invoke(
+        response = self.optimizer_llm.invoke(
             improvement_prompt.format(
                 current_prompt=current_prompt.messages[0].prompt.template,
                 score=current_score,

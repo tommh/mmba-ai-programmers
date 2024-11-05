@@ -44,6 +44,9 @@ structure instructions.
         You're in this course to become an AI advocate. What does an AI advocate do? What is their role and what value do they bring? How do I influence my team/department/team when it comes to AI? Many other questions may exist, and this section will show you what that's like at a 10,000 ft level. 
    
    - **Procedure:**
+      1. SOW Example (Who task)
+            - Explain the project
+            - Highlight the three things a project needs: Expert, context, and evaluations
       1. What technical skills do you need to know?
             - Highlight projects and use cases that we'll be covering 
             - show course topic overview (map)
@@ -56,7 +59,7 @@ structure instructions.
             - Show topic overview and higlight how each box has soft skills associated with these. We'll address these as we go.
 
    - **Code:**
-        A chart of everything we need to do and how we advocate for each part (mind map of curiculum with an extra box on how to talk about it with the team)
+        Whole task project
 
 
 1. **LLMs**
@@ -78,6 +81,9 @@ structure instructions.
                 - responding to reviews
                 - code generation
                 - even as simple as extracting dates (what are LLMs bad at vs good at; don't use AI when you can do the same thing easier using something else)
+
+    - **Code:**
+        - Review writer
 
 1. **Prompts**
    

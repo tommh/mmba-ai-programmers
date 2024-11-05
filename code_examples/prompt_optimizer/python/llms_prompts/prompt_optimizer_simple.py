@@ -1,9 +1,10 @@
 import openai
 import pandas as pd
 from typing import Callable, Dict
+from langsmith import traceable
 
 class SimplePromptOptimizer:
-    def __init__(self, model_name: str = "gpt-3.5-turbo"):
+    def __init__(self, model_name: str = "gpt-3.5-turbo-0125"):
         self.client = openai.OpenAI()
         self.model_name = model_name
 
@@ -20,19 +21,14 @@ class SimplePromptOptimizer:
             current_score = 0
             
             # Test current prompt on all examples
-            for index, example in examples.iloc[25:35].iterrows():
+            for index, example in examples.iterrows():
                 # Create messages for OpenAI
                 messages = [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": example["Review"]}
                 ]
                 
-                # Get response from OpenAI
-                response = self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=messages,
-                    temperature=0
-                )
+                response = self.test_prompt(messages)
                 
                 # Evaluate response
                 score = evaluate_func(response.choices[0].message.content, {"Sentiment": example["Sentiment"]})
@@ -51,13 +47,25 @@ class SimplePromptOptimizer:
                 break
                 
             # Generate improved prompt
-            system_prompt = self._improve_prompt(system_prompt, examples.head(2), avg_score)
+            system_prompt = self._improve_prompt(system_prompt, examples, avg_score)
             print(f"Improved prompt: {system_prompt}")
         
         return best_prompt, best_score
+    
+    @traceable(
+        name="prompt-tester",
+        tags=["prompt-tester"]
+    )
+    def test_prompt(self, messages: list) -> str:
+        return self.client.chat.completions.create(model=self.model_name, messages=messages, temperature=0)
 
+    @traceable(
+            name="prompt-optimizer",
+            tags=["prompt-optimizer"]
+    )
     def _improve_prompt(self, current_prompt: str, examples: pd.DataFrame, current_score: float) -> str:
         # Create improvement prompt
+        example_strings = "\n\n".join(f"""Review: {obj["Review"]}\nSentiment: {obj["Sentiment"]}""" for obj in examples.to_dict('records'))
         messages = [
             {
                 "role": "system",
@@ -69,7 +77,7 @@ class SimplePromptOptimizer:
                 "role": "user",
                 "content": f"""Current prompt template: {current_prompt}
                            Current performance score: {current_score}
-                           Example inputs and outputs: {examples.to_dict('records')}
+                           Example inputs and outputs: {example_strings}
                            
                            Please provide an improved version of the prompt template that will lead to better results.
                            Only return the new prompt template, nothing else."""

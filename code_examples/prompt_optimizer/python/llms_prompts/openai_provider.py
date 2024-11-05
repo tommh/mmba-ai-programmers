@@ -25,9 +25,6 @@ class OpenAIProvider:
     @traceable 
     def invoke(self, messages = []) -> str:
         # Send the prompt to the OpenAI API and return the response
-        print("*"*20)
-        print(messages)
-        print("*"*20)
         response = self.client.chat.completions.create(
             model=self.model_id,
             messages=messages

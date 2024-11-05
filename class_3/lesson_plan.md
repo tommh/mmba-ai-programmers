@@ -28,12 +28,12 @@ SQL evaluations
 
 1. **Observability Platforms and Setting up LangSmith**
    
-   - **Core Competency:** Know that Langchain and Langfuse are two good options, setting up LangSmith in your app, find the traces, navigating a trace, these platforms usually have options for HIPPA compliance. 
+   - **Core Competency:** Know that LangSmith and Langfuse are two good options, setting up LangSmith in your app, find the traces, navigating a trace, these platforms usually have options for HIPPA compliance. 
 
    - **Relevance:** Understanding how to set up a logging mechanism like LangSmith is crucial for monitoring LLM performance as it helps us avoid model drift and poor actors
 
    - **Procedure:**
-    1. Look at langsmith and langfuse's product offerings
+    1. Discuss observability and how it supports LLM performance
     2. Install the LangSmith library in your project using pip or npm.
     2. Set up a logger instance and configure it to track key metrics (e.g., model accuracy, response time).
     3. Use tracing mechanisms to monitor and analyze AI model performance.

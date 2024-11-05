@@ -41,12 +41,12 @@ Document indexer and lookup
       - Understanding the general process of RAG helps you as the engineer know where it goes in your process. This is especially important when deciding which type of RAG system to use for a particular project.
 
    - **Procedure:**
-      1. Go over the idea that RAG is simply providing context. Context is information pertaining to a given problem. That context can come from anywhere: document, database, websites, etc. We'll be covering documents today.
+      1. Go over the idea that RAG is simply providing context. Context is information pertaining to a given problem. That context can come from anywhere: document, database, websites, etc. We'll be covering documents today because it's the most novel use case, and a powerful one at that. We have never been able to leverage unstructured context like this before. 
+         - Rag is simply gathering content to add to your prompt
       2. High level:
          - you need documents you want to search
          - you need a vector database to store and search the documents 
          - you need to return the best results and inject them into your prompt
-      3. Discuss the different types of RAG systems, such as simple retrieval, document retrieval, and summary retrieval.
       4. Code:
          - Diagram of RAG instead of code
 
@@ -58,9 +58,8 @@ Document indexer and lookup
       - Pinecone is a popular vector database that can be used for RAG. Setting up a Pinecone vector database is an essential step in implementing a RAG system.
 
    - **Procedure:**
-      1. Explain the importance of naming the index and what the index will contain.
-      2. Show how to set up a Pinecone vector database using their website
-      3. Discuss how to store data in the Pinecone index, including embeddings and documents.
+      1. Set up an index in Pinecone using the website
+      2. Discuss how to data is stored in pinecone: as numbers
 
 **3. Embedding documents and storing them into Pinecone**
 
