@@ -8,6 +8,41 @@ For each class, you'll have:
 
 ## Class Links
 
+
+### Course Prework (do this first)
+
+- [To-do List Before Your First Class](./precourse_work/README.md)
+- [AI Project Ideas](./precourse_work/ai_project_ideas.md)
+- [AI Project Planning Document](./precourse_work/ai_project_planning_doc.md)
+
 ### Class 1
 1. [Prework](./class_1/prework)
 2. [Class Material](./class_1/)
+
+### Class 2
+1. [Prework](./class_2/prework)
+2. [Class Material](./class_2/)
+
+### Class 3
+1. [Prework](./class_3/prework)
+2. [Class Material](./class_3/)
+
+### Class 4
+1. [Prework](./class_4/prework)
+2. [Class Material](./class_4/)
+
+### Class 5
+1. [Prework](./class_5/prework)
+2. [Class Material](./class_5/)
+
+### Class 6
+1. [Prework](./class_6/prework)
+2. [Class Material](./class_6/)
+
+### Class 7
+1. [Prework](./class_7/prework)
+2. [Class Material](./class_7/)
+
+### Class 8
+1. [Prework](./class_8/prework)
+2. [Class Material](./class_8/)
