@@ -1,6 +1,6 @@
 # AI Project Planning Document
 ## Project Use Case
-**Instructions:** Create a google doc for yourself that answers the following quetions so that we can help you build out a viable projects using the concetps you learn in this course.  We will refer to this document throughout your learning experience, this is not a throw-away experience, think of this as your design doc as you continue build.
+**Instructions:** Create a Google Doc for yourself that answers the following questions to help us guide you in building viable projects using the concepts you learn in this course. We will refer to this document throughout your learning experience. This is not a throw-away exercise—think of it as your design document as you continue to build.
 
 Answer the following questions to help you identify a project use case:
 
