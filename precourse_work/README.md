@@ -14,4 +14,4 @@ We're excited to have you get started with the course! To make sure you're ready
 
     Head over to the [class 1 prework](../class_1/prework) and follow the instructions to complete the prework before class starts.
 
-We're looking forward to meeting with you and thank you for taking this course. We hope you're as excited as we are!
+We look forward to meeting with you and thank you for taking this course. We hope you're as excited as we are!
