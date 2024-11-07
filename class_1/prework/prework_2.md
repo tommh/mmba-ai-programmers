@@ -6,13 +6,13 @@ We will create a simple AI application to ensure your set up is correct.
 2. We'll first setup a virtual environment so any packages we install are scoped to this project. Inside Cursor, open the terminal panel either selecting the terminal icon in the top right of the Cursor window or hitting cmd/cntl+J. 
     In the terminal, create a virtual environment folder:
     ```bash
-    uv venv venv
+    uv venv
     ```
     Our dependencies will live in this folder. We need to activate the virtual environment before we install anything.
 
     Mac:
     ```bash
-    source venv/bin/activate
+    source .venv/bin/activate
     ```
 
     Windows:
