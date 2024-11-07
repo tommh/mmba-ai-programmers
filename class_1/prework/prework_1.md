@@ -82,4 +82,4 @@ Saving your API key to an environment variable keeps it secure and hidden from y
 
 ### Next Steps
 
-You are on your way now!  Your environment is set up, you have your API key loaded up and ready to go, let's move on to prework 2. 
+You are on your way now!  Your environment is set up, you have your API key loaded up and ready to go, let's move on to [Prework 2: Creating our first AI Application in Python](prework_2.md)
