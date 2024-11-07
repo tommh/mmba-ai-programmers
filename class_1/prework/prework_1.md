@@ -34,7 +34,11 @@ Pip is a Python package manager used to install Python libraries.
    ```
 
 ## Generate an Open AI Key
-To complete the exercises in this course, you will need access to the OpenAI API. Please follow the instructions below to set up your own account.  
+At MindBit, we prioritize protecting your intellectual property while ensuring a smooth and cost-effective learning experience. As part of our AI training, we ask each participant to sign up for their own OpenAI API account.
+
+Here’s why:
+- IP Protection: By using your own API key, any projects or work you create will remain entirely under your ownership and control.
+- Minimal Costs: Our course only requires about $5 of token usage, so you’ll have full transparency and control over your API costs.
 
 ### API Cost-Literacy is Critical
 Learning how to use OpenAI’s billing tools is very important for helping your company understand the costs of using AI. As you start advocating for AI projects, being able to clearly explain and predict expenses will make a huge difference. It shows that you’ve done your homework and can back up your ideas with real numbers, making it easier for your company to trust and support your AI plans. Plus, it helps make sure AI use stays within budget and delivers value. 
