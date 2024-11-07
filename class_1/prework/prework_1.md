@@ -47,7 +47,7 @@ Seeing those tokens get used up, monitoring the throughput, and seeing all the d
 We are using OpenAI for the duration of this course as it is the most widely used platform in industry.  The same concepts we teach here will be applicable to all platforms.
 
 1. Visit [OpenAI API website](https://platform.openai.com/) and sign up for an account if you don’t already have one.
-2. Once you have signed up, log in and navigate to the Billing section.
+2. Once you have signed up, log in and [navigate to the Billing section](https://platform.openai.com/settings/organization/billing/overview).
 3. Add $5 to your account to cover API usage throughout the course. This amount should be sufficient for the duration of the program.
 
 ### 2: Generate Your API Key
