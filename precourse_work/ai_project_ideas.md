@@ -1,7 +1,7 @@
 ## Selecting Your AI Project
 A key component of this course is to build a project of your own choosing. This course is only four weeks long, so the project should be relatively simple. It is something you should be able to do based on your schedule in the four-week time period. The project doesn’t have to be a success, but it should give you enough to understand the various components and challenges of an AI project. 
 
-Identifying a simple project that leverages AI can be challenging, but there's a lof of simple tasks that just couldn't be automated before that can with generative AI. A lot of “low hanging fruit” exists that you can build in this course that can add significant value to your work, and that's what we recommend you build (there's plenty to pick from!). 
+Identifying a simple project that leverages AI can be challenging, but there's a lot of simple tasks that just couldn't be automated before that can with generative AI. A lot of “low hanging fruit” exists that you can build in this course that can add significant value to your work, and that's what we recommend you build (there's plenty to pick from!). 
 
 ### Tips on finding a project
 
