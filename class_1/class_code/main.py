@@ -9,7 +9,7 @@ from openai_provider import OpenAIProvider
 from langsmith.client import Client, convert_prompt_to_openai_format
 
 class PromptOptimizer:
-    def __init__(self, model_id: str = "gpt-3.5-turbo-0125", optimizer_model_id: str = "gpt-3.5-turbo-0125"):
+    def __init__(self, model_id: str = "gpt-4o-mini", optimizer_model_id: str = "gpt-4o-mini"):
         self.llm = OpenAIProvider(model_id=model_id)
         self.optimizer_llm = OpenAIProvider(model_id=optimizer_model_id)
         self.langsmith = Client()  # Initialize LangSmith client

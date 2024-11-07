@@ -5,9 +5,9 @@ client = OpenAI()
 
 # Define models to test
 models = [
-    "gpt-4",
-    "gpt-3.5-turbo",
-    "gpt-4-turbo-preview",
+    "gpt-4-mini",
+    # "gpt-3.5-turbo",
+    # "gpt-4-turbo-preview",
 ]
 
 prompt = """
