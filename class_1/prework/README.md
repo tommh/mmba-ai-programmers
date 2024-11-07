@@ -6,5 +6,5 @@ For today's prework, we're making sure you have the right environment for this c
 
 Complete the following:
 
-- [10-Minute Environment Setup Walkthrough](prework_1.md)
-- [Creating our first AI Application in Python](prework_2.md)
+- Prework 1: [10-Minute Environment Setup Walkthrough](prework_1.md)
+- Prework 2: [Creating our first AI Application in Python](prework_2.md)
