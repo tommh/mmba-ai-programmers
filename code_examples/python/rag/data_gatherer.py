@@ -1,105 +1,101 @@
-import requests
-from bs4 import BeautifulSoup
-from typing import List, Dict
-import re
-from urllib.parse import urljoin
-from vector_database import VectorStore
+from langchain_community.vectorstores import Pinecone
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
+from langchain_pinecone import PineconeVectorStore
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 
-class BerkshireScraper:
-    """
-    Scrapes shareholder letters from Berkshire Hathaway's website.
-    """
-    
-    def __init__(self):
-        """Initialize with the base URL for Berkshire's letters"""
-        self.base_url = "https://www.berkshirehathaway.com/letters/"
-        self.letters_page = "letters.html"
-    
-    def get_letter_urls(self) -> List[str]:
-        """
-        Scrape all shareholder letter URLs from the letters page
-        
-        Returns:
-            List[str]: List of URLs to individual letters
-        """
-        
-        return [f"./rag/letters/{year}.txt" for year in range(1977, 1998)]
-    
-    def scrape_letter(self, url: str) -> Dict[str, str]:
-        """
-        Scrape content from a single letter URL
-        
-        Args:
-            url (str): URL of the letter to scrape
-            
-        Returns:
-            Dict with letter content and metadata
-        """
-        try:
-            # Extract year from file path (assuming format like '1982.txt')
-            year_match = re.search(r'(\d{4})', url)
-            year = year_match.group(1) if year_match else "Unknown"
-            
-            # Read the content from the local txt file
-            with open(url, 'r', encoding='utf-8') as file:
-                content = file.read()
-            
-            return {
-                'year': year,
-                'url': url,
-                'content': content,
-                'format': 'txt'
-            }
-            
-        except Exception as e:
-            print(f"Error scraping {url}: {str(e)}")
-            return None
-        
-    def scrape_all_letters(self) -> List[Dict[str, str]]:
-        """
-        Scrape all available shareholder letters
-        
-        Returns:
-            List[Dict]: List of dictionaries containing letter content and metadata
-        """
-        letters = []
-        urls = self.get_letter_urls()
-        
-        for url in urls:
-            letter = self.scrape_letter(url)
-            if letter:
-                letters.append(letter)
-        
-        # Sort by year
-        letters.sort(key=lambda x: x['year'], reverse=True)
-        return letters
-    
+embedding = OpenAIEmbeddings(model='text-embedding-3-small')
+
+def load_documents():
+    loader = DirectoryLoader("./", glob="**/letters/*.txt", loader_cls=TextLoader)
+    docs = loader.load()
+
+    print(f"Found {len(docs)} letters")
+    return docs
+
+def chunk_documents(docs):
+    # Split documents into chunks
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len,
+    )
+    chunks = text_splitter.split_documents(docs)
+    return chunks
+
+def create_summaries(docs):
+    llm = ChatOpenAI(model="gpt-4o-mini")
+    for doc in docs:
+        messages = [
+                SystemMessage(content="Create a concise summary of the following document. Include a list of the companies that they invested in this year:"),
+                HumanMessage(content=doc.page_content)
+            ]
+        summary = llm.invoke(messages)
+        print(summary.content)
+
+def embed_documents(docs, namespace):
+    "embed documents and place them in the vector store"
+    PineconeVectorStore.from_documents(
+        documents=docs, 
+        embedding=embedding, 
+        index_name='berkshire-hathaway',
+        namespace=namespace
+    )
+
+def search_document_chunks(query, namespace):
+    vector_store = PineconeVectorStore(index_name='berkshire-hathaway', embedding=embedding)
+    docs = vector_store.similarity_search_with_score(query=query, k=5, namespace=namespace)
+    return docs
+
+
+
 if __name__ == "__main__":
-    # Create scraper and get letters
-    scraper = BerkshireScraper()
-    letters = scraper.scrape_all_letters()
+    # Load chunks
+    docs = load_documents()
+    summaries = create_summaries([docs[0]])
+    # embed_documents(docs=summaries, namespace="summaries")
+    
+    # chunks = chunk_documents(docs=docs)
+    # embed_documents(docs=chunks, namespace="chunks")
 
-    # Print summary of what we found
-    print(f"Found {len(letters)} letters:")
-    # for letter in letters:
-    #     print(f"Year: {letter['year']}, Format: {letter['format']}, URL: {letter['url']}")
+    # user_query = "When did Berkshire Hathaway purchase it's first coke stock?" # should return 1988
+    # user_query = "What stocks did Bershire Hathaway have in 1992?" # Will struggle to return this
+    # docs_and_scores = search_document_chunks(query=user_query, namespace="")
+    # docs = []
+    # for doc, score in docs_and_scores:
+    #     print(score)
+    #     print(doc.metadata)
+    #     docs.append(doc.page_content)
 
-    # Example of storing in vector database
-    vector_store = VectorStore()
+    # llm = ChatOpenAI(model="gpt-4o-mini", max_tokens=150)
+    # prompt_template = ChatPromptTemplate.from_messages([
+    #     (
+    #         "system", 
+    #         """Provide an answer to the user's query about Berkshire Hathaway.
+    #             Documents from the Berkshire Hathaway shareholder meetings will be provided.
+    #             Use those documents to best answer the question.
+    #         """
+    #     ),
+    #     (
+    #         "system",
+    #         "Documents: {docs}"
+    #     ),
+    #     (
+    #         "user",
+    #         "{query}"
+    #     )
+    # ])
+    # prompt = prompt_template.invoke({"docs": docs, "query": user_query})
 
-    # Store each letter in the vector database
-    for letter in letters:
-        # Chunk the content for very long letters
-        max_chunk_size = 2000  # Define the maximum chunk size
-        content = letter['content']
-        chunks = [content[i:i + max_chunk_size] for i in range(0, len(content), max_chunk_size)]
-        
-        for chunk in chunks:
-            vector_store.add_to_index(
-                text=chunk,
-                metadata={
-                    'year': letter['year'],
-                    'url': letter['url'],
-                    'format': letter['format'],
-                }
-            )
+    # response = llm.invoke(prompt)
+    # print(response.content)
+
+# TODO
+# Repo with starter code and requirements file
+# instructions on how to set up their environment
+# Send the repo out to everyone and ask them to have it prepared before class
+# name files clearly (potentially with numbers) so it's easy to follow along
+# Have a simple input prompt that they can run to ensure everything is working as expected
+# have them ping the channel with questions

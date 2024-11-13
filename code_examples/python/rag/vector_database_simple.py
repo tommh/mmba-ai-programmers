@@ -1,53 +1,56 @@
 from dotenv import load_dotenv
-from pinecone import Pinecone
-import openai
+from langchain_community.vectorstores import Pinecone
+from langchain_openai import OpenAIEmbeddings
 from typing import List, Dict, Any
 import uuid
+from pinecone import Pinecone as PineconeClient
 
 load_dotenv()
 
 class VectorStoreSimple:
     """
     A class to store and search text using vector embeddings.
-    Uses Pinecone for vector storage and OpenAI for generating embeddings.
+    Uses Pinecone for vector storage and OpenAI for generating embeddings via LangChain.
     """
 
     def __init__(self):
         self.index_name = "berkshire-hathaway"
-        pc = Pinecone()
-        self.index = pc.Index(self.index_name)
+        # Initialize Pinecone client
+        pc = PineconeClient()
         
-        self.client = openai.OpenAI()
-        
-    def _get_embedding(self, text: str) -> List[float]:
-        response = self.client.embeddings.create(
-            model="text-embedding-3-small",  # Using OpenAI's latest small embedding model
-            input=text,
-            encoding_format="float"
+        # Initialize LangChain components
+        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+        self.vector_store = Pinecone(
+            pc.Index(self.index_name),
+            self.embeddings,
+            "text"  # metadata field that holds the text
         )
-        return response.data[0].embedding
 
     def add_to_index(self, text: str, metadata: Dict[str, Any] = None) -> None:
-        embedding = self._get_embedding(text)
-        vector_id = str(uuid.uuid4())
-        self.index.upsert(
-            vectors=[(vector_id, embedding, metadata or {"text": text})]
+        # Combine text with metadata if provided
+        full_metadata = metadata or {}
+        full_metadata["text"] = text
+        
+        # Add to vector store using LangChain
+        self.vector_store.add_texts(
+            texts=[text],
+            metadatas=[full_metadata],
+            ids=[str(uuid.uuid4())]
         )
 
     def similarity_search(self, query: str, top_k: int = 5) -> List[Dict]:
-        query_embedding = self._get_embedding(query)
-        results = self.index.query(
-            vector=query_embedding,
-            top_k=top_k,
-            include_metadata=True
+        # Use LangChain's similarity search
+        results = self.vector_store.similarity_search_with_score(
+            query,
+            k=top_k
         )
         
         return [
             {
-                "score": match.score,  # How similar this result is (lower = more similar)
-                "metadata": match.metadata  # The metadata we stored with the text
+                "score": score,  # Lower score = more similar
+                "metadata": doc.metadata  # The metadata we stored with the text
             }
-            for match in results.matches
+            for doc, score in results
         ]
     
 if __name__ == "__main__":

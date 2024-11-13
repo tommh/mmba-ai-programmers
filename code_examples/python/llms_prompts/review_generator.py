@@ -22,7 +22,7 @@ def generate_response(review):
         ]
 
         # Get response from LangChain
-        response = chat(messages)
+        response = chat.invoke(messages)
         
         return response.content
     except Exception as e:
