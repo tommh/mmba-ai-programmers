@@ -5,8 +5,8 @@ client = OpenAI()
 
 # Define models to test
 models = [
-    "gpt-4-mini",
-    # "gpt-3.5-turbo",
+    "gpt-4o-mini",
+    # "gpt-4o-mini",
     # "gpt-4-turbo-preview",
 ]
 
@@ -19,7 +19,7 @@ prompt = """
 """
 # The final response should be in the following format:
 # thought: analyze the review to determine if it's positive or negative
-# sentiment: "positive" or "negative"``
+# sentiment: "positive" or "negative"
 
 # Test each model multiple times
 for attempt in range(10):

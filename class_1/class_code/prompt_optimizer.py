@@ -4,7 +4,7 @@ from langsmith import Client
 from typing import Callable, List
 
 class SimplePromptOptimizer:
-    def __init__(self, model_name: str = "gpt-3.5-turbo"):
+    def __init__(self, model_name: str = "gpt-4o-mini"):
         self.llm = ChatOpenAI(model_name=model_name, temperature=0, tags=["prompt-tester"])
         self.optimizer_llm = ChatOpenAI(model_name=model_name, temperature=0, tags=["prompt-optimizer"])
         self.langsmith = Client()

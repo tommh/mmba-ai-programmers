@@ -1,47 +1,37 @@
-from openai import OpenAI
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
 import os
 
-# Initialize OpenAI client
-client = OpenAI()
+# Initialize LangChain chat model
+llm = ChatOpenAI(
+    model="gpt-4-0125-preview",  # GPT-4-mini model
+    temperature=0.3
+)
 
 def classify_file_type(file_content):
     """Determine if a file is claims, membership, or cag type using GPT"""
     try:
-        # Create prompt with few-shot examples
-        messages = [
-            {
-                "role": "system", 
-                "content": """You are a pharmaceutical data analyst. Classify files as 'claims', 'membership', or 'cag' based on their content.
-                Here are some examples:
-                File content: MemberID,EnrollDate,PlanType,Gender,DOB
-                Classification: membership
-                File content: ClaimID,DateOfService,NDC,Quantity,PrescriberNPI
-                Classification: claims
-                File content: GroupID,ContractType,BenefitYear,FormularyCode
-                Classification: cag
-                """},
-            {"role": "user", "content": f"File content: {file_content}"}
-        ]
-        # Create prompt with few-shot examples in different messages
-        # messages = [
-        #     {"role": "system", "content": "You are a pharmaceutical data analyst. Classify files as 'claims', 'membership', or 'cag' based on their content."},
-        #     {"role": "user", "content": "File content: MemberID,EnrollDate,PlanType,Gender,DOB"},
-        #     {"role": "assistant", "content": "membership"},
-        #     {"role": "user", "content": "File content: ClaimID,DateOfService,NDC,Quantity,PrescriberNPI"},
-        #     {"role": "assistant", "content": "claims"},
-        #     {"role": "user", "content": "File content: GroupID,ContractType,BenefitYear,FormularyCode"},
-        #     {"role": "assistant", "content": "cag"},
-        #     {"role": "user", "content": f"File content: {file_content}"}
-        # ]
+        # Create prompt template with few-shot examples
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """You are a pharmaceutical data analyst. Classify files as 'claims', 'membership', or 'cag' based on their content.
+            Here are some examples:
+            File content: MemberID,EnrollDate,PlanType,Gender,DOB
+            Classification: membership
+            File content: ClaimID,DateOfService,NDC,Quantity,PrescriberNPI
+            Classification: claims
+            File content: GroupID,ContractType,BenefitYear,FormularyCode
+            Classification: cag
+            """),
+            ("user", "File content: {file_content}")
+        ])
 
-        # Get classification from OpenAI
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0.3
-        )
+        # Format prompt with file content
+        chain = prompt | llm
         
-        return response.choices[0].message.content
+        # Get classification
+        response = chain.invoke({"file_content": file_content})
+        
+        return response.content
     except Exception as e:
         return f"Error classifying file: {str(e)}"
 

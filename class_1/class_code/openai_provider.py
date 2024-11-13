@@ -5,7 +5,7 @@ from langsmith.wrappers import wrap_openai
 from langsmith import traceable
 
 class OpenAIProvider:
-    def __init__(self, model_id: str = "gpt-3.5-turbo-0125"):
+    def __init__(self, model_id: str = "gpt-4o-mini-0125"):
         self.model_id = model_id
         # Initialize the OpenAI API client
         self.client = self._initialize_client()
