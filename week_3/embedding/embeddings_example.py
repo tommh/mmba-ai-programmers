@@ -34,7 +34,7 @@ index = faiss.IndexFlatL2(dimension)
 index.add(np.array(embeddings, dtype='float32'))
 
 # Query the index
-query = 'Arve Opsahl i sine glansdager'
+query = 'Sjeik Ben Reddik Fy Fasan'
 query_embedding = get_embedding(query)
 distances, indices = index.search(np.array([query_embedding], dtype='float32'), 4)  # Changed to 4
 
