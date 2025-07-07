@@ -9,6 +9,7 @@ texts = [
 from openai import OpenAI
 from dotenv import load_dotenv
 
+# Last .env fil fra rot-mappen
 load_dotenv()
 
 def get_embedding(text):
