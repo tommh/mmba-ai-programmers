@@ -1,11 +1,15 @@
 # Example documents about movies
 texts = [
-    "The Godfather is a classic mafia crime drama",
-    "Inception explores dreams within dreams",
-    "The Shawshank Redemption is a story about hope and friendship",
+    "Olsenbanden er god gammeldags moro",
+    "Flåklypa Grand Prix er dukkefilm", 
+    "Orions Belte er en klassiker",
+    "Den forsvunne pølsemaker er morsom"
 ]
 
 from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_embedding(text):
     client = OpenAI()
@@ -13,30 +17,29 @@ def get_embedding(text):
         model="text-embedding-3-small",
         input=text
     )
-
     return response.data[0].embedding
 
-# get_embedding(texts[0])
-
+# Generate embeddings for all texts
 embeddings = []
 for text in texts:
     embedding = get_embedding(text)
     embeddings.append(embedding)
 
 import faiss
+import numpy as np
 
+# Create FAISS index
 dimension = len(embeddings[0])
 index = faiss.IndexFlatL2(dimension)
+index.add(np.array(embeddings, dtype='float32'))
 
-import numpy 
-index.add(numpy.array(embeddings, dtype='float32'))
-
-query = 'Tell me about a prison movie'
-
+# Query the index
+query = 'Arve Opsahl i sine glansdager'
 query_embedding = get_embedding(query)
-distances, indicies = index.search(numpy.array([query_embedding], dtype='float32'), 3)
+distances, indices = index.search(np.array([query_embedding], dtype='float32'), 4)  # Changed to 4
 
-for i in range(3):
-    # print(f"Match {i+1}, Distance: {distances[0][i]:.f4}")
-    print(texts[indicies[0][i]])
-
+# Print results
+for i in range(4):  # Now matches the search count
+    print(f"Match {i+1}, Distance: {distances[0][i]:.5f}")
+    print(texts[indices[0][i]])
+    print()
