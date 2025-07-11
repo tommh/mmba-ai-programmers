@@ -1,0 +1,249 @@
+import pyodbc
+import openai
+import json
+import numpy as np
+from typing import List, Optional
+import time
+import os
+from dotenv import load_dotenv
+
+# Last inn .env filen
+load_dotenv()
+
+class SporsmalEmbeddingProcessor:
+    def __init__(self, connection_string: str, openai_api_key: str):
+        """
+        Initialiserer prosessoren med database og OpenAI konfiguration
+        
+        Args:
+            connection_string: SQL Server connection string
+            openai_api_key: OpenAI API nøkkel
+        """
+        self.connection_string = connection_string
+        self.openai_client = openai.OpenAI(api_key=openai_api_key)
+        
+    def get_questions_without_vectors(self) -> List[tuple]:
+        """
+        Henter alle spørsmål som mangler vektorer
+        
+        Returns:
+            Liste med (SporsmalID, Sporsmal) tupler
+        """
+        try:
+            with pyodbc.connect(self.connection_string) as conn:
+                cursor = conn.cursor()
+                query = """
+                SELECT SporsmalID, Sporsmal 
+                FROM [dbo].[Sporsmal] 
+                WHERE VektorSporsmal IS NULL
+                """
+                cursor.execute(query)
+                return cursor.fetchall()
+        except Exception as e:
+            print(f"Feil ved henting av spørsmål: {e}")
+            return []
+    
+    def generate_embedding(self, text: str, model: str = "text-embedding-3-small") -> Optional[List[float]]:
+        """
+        Genererer embedding for gitt tekst via OpenAI API
+        
+        Args:
+            text: Tekst som skal konverteres til embedding
+            model: OpenAI embedding modell
+            
+        Returns:
+            Liste med float verdier (embedding) eller None ved feil
+        """
+        try:
+            response = self.openai_client.embeddings.create(
+                model=model,
+                input=text,
+                encoding_format="float"
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            print(f"Feil ved generering av embedding: {e}")
+            return None
+    
+    def reduce_dimensions(self, embedding: List[float], target_dim: int = 2) -> List[float]:
+        """
+        Reduserer dimensjonene til embeddings (for SQL Server vector(2))
+        Bruker PCA-lignende tilnærming
+        
+        Args:
+            embedding: Original embedding
+            target_dim: Mål dimensjon (2 for vector(2))
+            
+        Returns:
+            Redusert embedding
+        """
+        if len(embedding) <= target_dim:
+            return embedding[:target_dim]
+        
+        # Enkel dimensjons-reduksjon: ta de første komponentene og normaliser
+        arr = np.array(embedding)
+        
+        # Ta første to komponenter
+        reduced = arr[:target_dim]
+        
+        # Normaliser til [-1, 1] range
+        if np.max(np.abs(reduced)) > 0:
+            reduced = reduced / np.max(np.abs(reduced))
+        
+        return reduced.tolist()
+    
+    def update_question_vector(self, sporsmal_id: int, vector: List[float]) -> bool:
+        """
+        Oppdaterer VektorSporsmal for et spørsmål
+        
+        Args:
+            sporsmal_id: ID til spørsmålet
+            vector: Vector som skal lagres
+            
+        Returns:
+            True hvis vellykket, False ellers
+        """
+        try:
+            with pyodbc.connect(self.connection_string) as conn:
+                cursor = conn.cursor()
+                
+                # Konverter vector til SQL Server format
+                vector_str = f"[{vector[0]}, {vector[1]}]"
+                
+                query = """
+                UPDATE [dbo].[Sporsmal] 
+                SET VektorSporsmal = ? 
+                WHERE SporsmalID = ?
+                """
+                cursor.execute(query, (vector_str, sporsmal_id))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Feil ved oppdatering av vektor for SporsmalID {sporsmal_id}: {e}")
+            return False
+    
+    def process_all_questions(self, delay_seconds: float = 1.0):
+        """
+        Prosesserer alle spørsmål som mangler vektorer
+        
+        Args:
+            delay_seconds: Pause mellom API kall for å unngå rate limiting
+        """
+        questions = self.get_questions_without_vectors()
+        
+        if not questions:
+            print("Ingen spørsmål funnet som mangler vektorer.")
+            return
+        
+        print(f"Fant {len(questions)} spørsmål som trenger vektorer...")
+        
+        for sporsmal_id, sporsmal_text in questions:
+            print(f"\nProsesserer: {sporsmal_text}")
+            
+            # Generer embedding
+            embedding = self.generate_embedding(sporsmal_text)
+            if embedding is None:
+                print(f"Kunne ikke generere embedding for spørsmål ID {sporsmal_id}")
+                continue
+            
+            # Reduser dimensjoner til 2D
+            vector_2d = self.reduce_dimensions(embedding, 2)
+            
+            # Oppdater database
+            if self.update_question_vector(sporsmal_id, vector_2d):
+                print(f"✓ Oppdatert vektor for spørsmål ID {sporsmal_id}: {vector_2d}")
+            else:
+                print(f"✗ Feil ved oppdatering av spørsmål ID {sporsmal_id}")
+            
+            # Pause for å unngå rate limiting
+            time.sleep(delay_seconds)
+        
+        print("\n=== Prosessering av spørsmål fullført ===")
+    
+    def show_questions_status(self):
+        """
+        Viser status på alle spørsmål i databasen
+        """
+        try:
+            with pyodbc.connect(self.connection_string) as conn:
+                cursor = conn.cursor()
+                
+                # Hent statistikk
+                cursor.execute("""
+                SELECT 
+                    COUNT(*) as TotaltSporsmal,
+                    SUM(CASE WHEN VektorSporsmal IS NULL THEN 1 ELSE 0 END) as ManglerVektorer,
+                    SUM(CASE WHEN VektorSporsmal IS NOT NULL THEN 1 ELSE 0 END) as HarVektorer
+                FROM [dbo].[Sporsmal]
+                """)
+                
+                stats = cursor.fetchone()
+                total, missing, has_vectors = stats
+                
+                print(f"\n📊 STATUS SPØRSMÅL:")
+                print(f"   Totalt spørsmål: {total}")
+                print(f"   Har vektorer: {has_vectors}")
+                print(f"   Mangler vektorer: {missing}")
+                
+                # Vis spørsmål som mangler vektorer
+                if missing > 0:
+                    cursor.execute("""
+                    SELECT SporsmalID, Sporsmal 
+                    FROM [dbo].[Sporsmal] 
+                    WHERE VektorSporsmal IS NULL
+                    ORDER BY SporsmalID
+                    """)
+                    
+                    missing_questions = cursor.fetchall()
+                    print(f"\n❌ Spørsmål som mangler vektorer:")
+                    for qid, qtext in missing_questions:
+                        print(f"   ID {qid}: {qtext}")
+                
+                # Vis spørsmål som har vektorer
+                if has_vectors > 0:
+                    cursor.execute("""
+                    SELECT SporsmalID, Sporsmal, VektorSporsmal 
+                    FROM [dbo].[Sporsmal] 
+                    WHERE VektorSporsmal IS NOT NULL
+                    ORDER BY SporsmalID
+                    """)
+                    
+                    vector_questions = cursor.fetchall()
+                    print(f"\n✅ Spørsmål som har vektorer:")
+                    for qid, qtext, vector in vector_questions:
+                        print(f"   ID {qid}: {qtext}")
+                        print(f"           Vektor: {vector}")
+                
+        except Exception as e:
+            print(f"Feil ved henting av status: {e}")
+
+def main():
+    # Konfiguration
+    CONNECTION_STRING = (
+        "Driver={ODBC Driver 17 for SQL Server};"
+        "Server=TH\\SQL2025;"  # Din SQL Server instans
+        "Database=VectorDB;"   # Din database
+        "Trusted_Connection=yes;"  # Windows Authentication
+    )
+    
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # Les fra .env fil
+    
+    if not OPENAI_API_KEY:
+        print("Feil: OPENAI_API_KEY ikke funnet i .env fil")
+        return
+    
+    # Opprett prosessor
+    processor = SporsmalEmbeddingProcessor(CONNECTION_STRING, OPENAI_API_KEY)
+    
+    # Vis status før prosessering
+    processor.show_questions_status()
+    
+    # Prosesser alle spørsmål
+    processor.process_all_questions(delay_seconds=1.0)
+    
+    # Vis status etter prosessering
+    print("\n" + "="*50)
+    processor.show_questions_status()
+
+if __name__ == "__main__":
+    main()
