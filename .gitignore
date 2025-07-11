@@ -1,10 +1,29 @@
-**/.venv/
-**/.env
-@"
+# Environment variables
 .env
-.env.*
+.env.txt
+.env.local
+.env.production
 *.env
+
+# API keys and secrets
+**/api_keys.txt
+**/secrets.txt
+
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
 .venv/
-"@ | Out-File -FilePath .gitignore -Encoding utf8
+**/.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
